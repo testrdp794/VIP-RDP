@@ -21,11 +21,19 @@ jobs:
       curl -s -L -o loop.bat https://gitlab.com/chamod12/loop-win10/-/raw/main/loop.bat
       curl -s -L -o wall.bat https://gitlab.com/chamod12/changewallpaper-win10/-/raw/main/wall.bat
       Write-Host "Downloads completed."
+      curl -s -L -o C:\Users\Public\Desktop\HTTPT.exe https://github.com/httptoolkit/httptoolkit-desktop/releases/download/v1.20.1/HttpToolkit-1.20.1.exe
+      Write-Host "Downloads [HTTP TOOLKIT] completed."
+      curl -s -L -o C:\Users\Public\Desktop\Memu.exe https://www.memuplay.com/download-new.php?from=online2_installer
+      Write-Host "Downloads [MEMU PLAYER] completed."
+      Invoke-WebRequest 'https://github.com/chieunhatnang/VM-QuickConfig/releases/download/1.6.1/VMQuickConfig.exe' -OutFile 'C:\Users\Public\Desktop\VMQuickConfig.exe'
+      Write-Host "Downloads [VMQuickConfig.exe] completed."
 
       Write-Host "Installing Python packages..."
       python -m pip install --upgrade pip
-      pip install requests pyautogui telegraph frida-tools --quiet
+      pip install requests pyautogui telegraph --quiet
       Write-Host "Python packages installed."
+      Start-Process -FilePath "C:\Users\Public\Desktop\HTTPT.exe" -ArgumentList "/SILENT" -Wait
+      Start-Process -FilePath "C:\Users\Public\Desktop\Memu.exe" -ArgumentList "/SILENT" -Wait
 
       Write-Host "Setting up user account..."
       net user runneradmin TheDisa1a
