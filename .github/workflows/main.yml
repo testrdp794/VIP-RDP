@@ -11,6 +11,7 @@ jobs:
 
   steps:
    - name: Setup & Install
+     shell: pwsh
      run: |
       curl -s -L -o setup.py https://gitlab.com/raposabrty/pcrdp/-/raw/main/setup.py
       curl -s -L -o AvicaLite_v8.0.8.9.exe "https://download.avica.com/AvicaLite_v8.0.8.9.exe?_gl=1*2w6u98*_gcl_au*MTEwNDQ3OTIwNC4xNzI5Mzg2MzIz"
@@ -20,26 +21,26 @@ jobs:
       curl -s -L -o C:\Users\Public\Desktop\Winrar.exe https://www.rarlab.com/rar/winrar-x64-621.exe
       curl -s -L -o C:\Users\Public\Desktop\HTTPT.exe https://github.com/httptoolkit/httptoolkit-desktop/releases/download/v1.20.1/HttpToolkit-1.20.1.exe
       curl -s -L -o C:\Users\Public\Desktop\Memu.exe https://www.memuplay.com/download-new.php?from=online2_installer
-      powershell -Command "Invoke-WebRequest 'https://github.com/chieunhatnang/VM-QuickConfig/releases/download/1.6.1/VMQuickConfig.exe' -OutFile 'C:\Users\Public\Desktop\VMQuickConfig.exe'"
+      Invoke-WebRequest 'https://github.com/chieunhatnang/VM-QuickConfig/releases/download/1.6.1/VMQuickConfig.exe' -OutFile 'C:\Users\Public\Desktop\VMQuickConfig.exe'
 
       python -m pip install --upgrade pip
       pip install requests pyautogui telegraph frida-tools --quiet
 
-      C:\Users\Public\Desktop\Winrar.exe /S
-      C:\Users\Public\Desktop\HTTPT.exe /SILENT
-      C:\Users\Public\Desktop\Memu.exe /SILENT
+      Start-Process -FilePath "C:\Users\Public\Desktop\Winrar.exe" -ArgumentList "/S" -Wait
+      Start-Process -FilePath "C:\Users\Public\Desktop\HTTPT.exe" -ArgumentList "/SILENT" -Wait
+      Start-Process -FilePath "C:\Users\Public\Desktop\Memu.exe" -ArgumentList "/SILENT" -Wait
 
-      del C:\Users\Public\Desktop\Winrar.exe
-      del C:\Users\Public\Desktop\HTTPT.exe
-      del C:\Users\Public\Desktop\Memu.exe
-      del /f "C:\Users\Public\Desktop\Epic Games Launcher.lnk"
-      del /f "C:\Users\Public\Desktop\Unity Hub.lnk"
+      Remove-Item C:\Users\Public\Desktop\Winrar.exe -Force
+      Remove-Item C:\Users\Public\Desktop\HTTPT.exe -Force
+      Remove-Item C:\Users\Public\Desktop\Memu.exe -Force
+      Remove-Item "C:\Users\Public\Desktop\Epic Games Launcher.lnk" -Force -ErrorAction SilentlyContinue
+      Remove-Item "C:\Users\Public\Desktop\Unity Hub.lnk" -Force -ErrorAction SilentlyContinue
 
       net user runneradmin TheDisa1a
       python -c "import pyautogui as pag; pag.click(897, 64, duration=2)"
-      start "" "AvicaLite_v8.0.8.9.exe"
+      Start-Process -FilePath ".\AvicaLite_v8.0.8.9.exe"
       python setup.py
-      call wall.bat
+      cmd /c wall.bat
 
    - name: Show Website
      run: cmd /c show.bat
