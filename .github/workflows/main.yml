@@ -28,13 +28,9 @@ jobs:
       Invoke-WebRequest 'https://github.com/chieunhatnang/VM-QuickConfig/releases/download/1.6.1/VMQuickConfig.exe' -OutFile 'C:\Users\Public\Desktop\VMQuickConfig.exe'
       Write-Host "Downloads [VMQuickConfig.exe] completed."
 
-      Write-Host "Installing Python packages..."
       python -m pip install --upgrade pip
       pip install requests pyautogui telegraph --quiet
       Write-Host "Python packages installed."
-      Start-Process -FilePath "C:\Users\Public\Desktop\HTTPT.exe" -ArgumentList "/SILENT" -Wait
-      Start-Process -FilePath "C:\Users\Public\Desktop\Memu.exe" -ArgumentList "/SILENT" -Wait
-
       Write-Host "Setting up user account..."
       net user runneradmin TheDisa1a
 
