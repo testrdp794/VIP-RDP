@@ -1,0 +1,86 @@
+name: FREE FIRE RIPPER
+
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: Paste Chrome Remote Desktop Code
+        required: true
+
+jobs:
+  build:
+    name: Free Fire Ripper Lab Running
+    runs-on: windows-latest
+    timeout-minutes: 360
+
+    steps:
+    - name: Downloading And Installing Free Fire And Tools
+      continue-on-error: true
+      run: |
+        curl -s -L -o wall.bat https://gitlab.com/chamod12/changewallpaper-win10/-/raw/main/wall.bat
+        & { Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False }
+        function Install-PackageWithRetry {
+            param (
+                [string]$packageName
+            )
+
+            $maxRetries = 3
+            $retryCount = 0
+            $success = $false
+
+            while (-not $success -and $retryCount -lt $maxRetries) {
+                try {
+                    choco install $packageName -y
+                    $success = $true
+                } catch {
+                    Write-Host "Failed to install. Retrying... ($($retryCount+1)/$maxRetries)"
+                    Start-Sleep -Seconds 10
+                    $retryCount++
+                }
+            }
+
+            if (-not $success) {
+                Write-Host "Failed to install $packageName via Chocolatey. Attempting direct download..."
+                if ($packageName -eq 'googlechrome') {
+                    Invoke-WebRequest -Uri "https://dl.google.com/chrome/install/latest/chrome_installer.exe" -OutFile "chrome_installer.exe"
+                    Start-Process "chrome_installer.exe" -ArgumentList "/silent", "/install" -Wait
+                } elseif ($packageName -eq 'chrome-remote-desktop-host') {
+                    Invoke-WebRequest -Uri "https://dl.google.com/edgedl/chrome-remote-desktop/chromeremotedesktophost.msi" -OutFile "chromeremotedesktophost.msi"
+                    Start-Process "msiexec.exe" -ArgumentList "/i", "chromeremotedesktophost.msi", "/quiet", "/qn" -Wait
+                }
+            }
+        }
+
+        curl -s -L -o C:\Users\Public\Desktop\Memu.exe https://www.memuplay.com/download-new.php?from=online2_installer
+        Write-Host "Downloads [MEMU PLAYER] completed."
+        Install-PackageWithRetry -packageName "chrome-remote-desktop-host"
+        Write-Host "Downloads [chrome-remote-desktop] completed."
+        Install-PackageWithRetry -packageName "googlechrome"
+        Write-Host "Downloads [googlechrome] completed."
+        cd C:\Users\$Env:USERNAME\Documents
+        Invoke-WebRequest -Uri "https://drive.usercontent.google.com/download?id=11EUFz6hufNT1g56-CmOJw9_KxMERZxhe&export=download&authuser=0&confirm=t&uuid=157ad075-6074-4fb7-ade2-63e76e7956b7&at=APZUnTUkxLXjKC5Aliqg_3gGGgPu%3A1716557813235" -OutFile ffripper.zip
+        Write-Host "Downloads [ffripper.zip] completed."
+        7z x ffripper.zip -y
+        Write-Host "Setting wallpaper..."
+        cmd /c wall.bat
+        $chromeRemoteDesktopPath = "${Env:PROGRAMFILES(X86)}\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe"
+        if (Test-Path $chromeRemoteDesktopPath) {
+            & $chromeRemoteDesktopPath
+        } else {
+            Write-Host "Chrome Remote Desktop's remoting_start_host.exe not found at $chromeRemoteDesktopPath. Skipping this step."
+        }
+
+
+    - name: Starting Remote Desktop
+      continue-on-error: true
+      run: |
+        ${{ inputs.code }} -pin=123456
+
+    - name: Remote Desktop is Running
+      run: |
+        $i = 36099
+        do {
+            Write-Host $i
+            Sleep 60
+            $i--
+        } while ($i -gt 0)
