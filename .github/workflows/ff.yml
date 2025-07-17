@@ -80,7 +80,7 @@ jobs:
         foreach ($path in $possiblePaths) {
             if (Test-Path $path) {
                 Write-Host "Found Chrome Remote Desktop at: $path"
-                & $path --code="${{ inputs.code }}" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$Env:COMPUTERNAME --pin=123456
+                & $path --code="${{ inputs.code }}" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --display-name=$Env:COMPUTERNAME --pin=123456
                 $crdFound = $true
                 break
             }
@@ -96,7 +96,7 @@ jobs:
             foreach ($path in $possiblePaths) {
                 if (Test-Path $path) {
                     Write-Host "Found Chrome Remote Desktop after reinstallation at: $path"
-                    & $path --code="${{ inputs.code }}" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$Env:COMPUTERNAME --pin=123456
+                    & $path --code="${{ inputs.code }}" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --display-name=$Env:COMPUTERNAME --pin=123456
                     $crdFound = $true
                     break
                 }
