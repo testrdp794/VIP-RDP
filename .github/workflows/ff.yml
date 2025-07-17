@@ -1,4 +1,4 @@
-name: FREE FIRE RIPPER
+name: gringo.crd
 
 on:
   workflow_dispatch:
@@ -17,7 +17,6 @@ jobs:
     - name: Downloading And Installing Free Fire And Tools
       continue-on-error: true
       run: |
-        curl -s -L -o wall.bat https://gitlab.com/chamod12/changewallpaper-win10/-/raw/main/wall.bat
         & { Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False }
         function Install-PackageWithRetry {
             param (
@@ -61,8 +60,6 @@ jobs:
         Invoke-WebRequest -Uri "https://drive.usercontent.google.com/download?id=11EUFz6hufNT1g56-CmOJw9_KxMERZxhe&export=download&authuser=0&confirm=t&uuid=157ad075-6074-4fb7-ade2-63e76e7956b7&at=APZUnTUkxLXjKC5Aliqg_3gGGgPu%3A1716557813235" -OutFile ffripper.zip
         Write-Host "Downloads [ffripper.zip] completed."
         7z x ffripper.zip -y
-        Write-Host "Setting wallpaper..."
-        cmd /c wall.bat
         $chromeRemoteDesktopPath = "${Env:PROGRAMFILES(X86)}\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe"
         if (Test-Path $chromeRemoteDesktopPath) {
             & $chromeRemoteDesktopPath
