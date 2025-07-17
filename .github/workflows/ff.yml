@@ -18,6 +18,7 @@ jobs:
       continue-on-error: true
       run: |
         & { Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False }
+        
         function Install-PackageWithRetry {
             param (
                 [string]$packageName
@@ -52,26 +53,60 @@ jobs:
 
         curl -s -L -o C:\Users\Public\Desktop\Memu.exe https://www.memuplay.com/download-new.php?from=online2_installer
         Write-Host "Downloads [MEMU PLAYER] completed."
+        
         Install-PackageWithRetry -packageName "chrome-remote-desktop-host"
         Write-Host "Downloads [chrome-remote-desktop] completed."
+        Start-Sleep -Seconds 30
+        
         Install-PackageWithRetry -packageName "googlechrome"
         Write-Host "Downloads [googlechrome] completed."
+        
         cd C:\Users\$Env:USERNAME\Documents
         Invoke-WebRequest -Uri "https://drive.usercontent.google.com/download?id=11EUFz6hufNT1g56-CmOJw9_KxMERZxhe&export=download&authuser=0&confirm=t&uuid=157ad075-6074-4fb7-ade2-63e76e7956b7&at=APZUnTUkxLXjKC5Aliqg_3gGGgPu%3A1716557813235" -OutFile ffripper.zip
         Write-Host "Downloads [ffripper.zip] completed."
         7z x ffripper.zip -y
-        $chromeRemoteDesktopPath = "${Env:PROGRAMFILES(X86)}\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe"
-        if (Test-Path $chromeRemoteDesktopPath) {
-            & $chromeRemoteDesktopPath
-        } else {
-            Write-Host "Chrome Remote Desktop's remoting_start_host.exe not found at $chromeRemoteDesktopPath. Skipping this step."
-        }
-
 
     - name: Starting Remote Desktop
       continue-on-error: true
       run: |
-        ${{ inputs.code }} -pin=123456
+        $possiblePaths = @(
+            "${Env:PROGRAMFILES(X86)}\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe",
+            "${Env:PROGRAMFILES}\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe",
+            "${Env:PROGRAMFILES(X86)}\Google\Chrome Remote Desktop\remoting_start_host.exe",
+            "${Env:PROGRAMFILES}\Google\Chrome Remote Desktop\remoting_start_host.exe"
+        )
+
+        $crdFound = $false
+        foreach ($path in $possiblePaths) {
+            if (Test-Path $path) {
+                Write-Host "Found Chrome Remote Desktop at: $path"
+                & $path --code="${{ inputs.code }}" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$Env:COMPUTERNAME --pin=123456
+                $crdFound = $true
+                break
+            }
+        }
+
+        if (-not $crdFound) {
+            Write-Host "Chrome Remote Desktop not found in standard locations. Attempting reinstallation..."
+            
+            Invoke-WebRequest -Uri "https://dl.google.com/edgedl/chrome-remote-desktop/chromeremotedesktophost.msi" -OutFile "crd_backup.msi"
+            Start-Process "msiexec.exe" -ArgumentList "/i", "crd_backup.msi", "/quiet" -Wait
+            Start-Sleep -Seconds 45
+            
+            foreach ($path in $possiblePaths) {
+                if (Test-Path $path) {
+                    Write-Host "Found Chrome Remote Desktop after reinstallation at: $path"
+                    & $path --code="${{ inputs.code }}" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$Env:COMPUTERNAME --pin=123456
+                    $crdFound = $true
+                    break
+                }
+            }
+            
+            if (-not $crdFound) {
+                Write-Host "Chrome Remote Desktop installation failed completely."
+                exit 1
+            }
+        }
 
     - name: Remote Desktop is Running
       run: |
