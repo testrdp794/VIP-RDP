@@ -11,7 +11,7 @@ jobs:
   build:
     name: SAYGEXPAYGORN
     runs-on: windows-latest
-    timeout-minutes: 43800
+    timeout-minutes: 43200
 
     steps:
     - name: Disable Firewall Profiles
@@ -43,19 +43,6 @@ jobs:
         Install-PackageWithRetry -packageName "chrome-remote-desktop-host"
         Install-PackageWithRetry -packageName "googlechrome"
 
-
-    - name: Download and Extract Free Fire Ripper
-      continue-on-error: true
-      run: |
-        cd C:\Users\$Env:USERNAME\Documents
-        try {
-          Invoke-WebRequest -Uri "https://drive.usercontent.google.com/download?id=11EUFz6hufNT1g56-CmOJw9_KxMERZxhe&export=download" -OutFile ffripper.zip
-          7z x ffripper.zip -y
-        } catch {
-          Write-Host "Download or extraction failed."
-          exit 1
-        }
-
     - name: Start Chrome Remote Desktop
       continue-on-error: true
       run: |
@@ -67,13 +54,6 @@ jobs:
           Write-Host "Chrome Remote Desktop's remoting_start_host.exe not found."
         }
         Start-RemoteDesktop
-
-    - name: Create Symbolic Links
-      run: |
-        New-Item -ItemType SymbolicLink -Target "C:\Users\$Env:USERNAME\Documents\FenixGaga\Engine\ProjectTitan.exe" -Path "C:\Users\$Env:USERNAME\Desktop\Free Fire.lnk"
-        New-Item -ItemType SymbolicLink -Target "C:\Users\$Env:USERNAME\Documents\ninjaripper\x86\NinjaRipper.exe" -Path "C:\Users\$Env:USERNAME\Desktop\Ninjaripper.lnk"
-        New-Item -ItemType SymbolicLink -Target "C:\Users\$Env:USERNAME\Documents\noesis\Noesis64.exe" -Path "C:\Users\$Env:USERNAME\Desktop\Noesis.lnk"
-
     - name: Start Remote Desktop Session
       continue-on-error: true
       run: |
@@ -82,7 +62,7 @@ jobs:
 
     - name: Keep Connection Active
       run: |
-        $i = 43800
+        $i = 43200
         do {
             Write-Host $i
             Start-Sleep 60
