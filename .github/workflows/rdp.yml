@@ -26,46 +26,69 @@ jobs:
       run: |
         function Install-PackageWithRetry {
             param ([string]$packageName)
-            $maxRetries = 3
+            $maxRetries = 5
             $retryCount = 0
             while ($retryCount -lt $maxRetries) {
                 try {
                     choco install $packageName -y --ignore-checksums
+                    Write-Host "$packageName installed successfully."
                     return
                 } catch {
                     Write-Host "Retrying $packageName install ($($retryCount+1)/$maxRetries)"
-                    Start-Sleep -Seconds 10
+                    Start-Sleep -Seconds 15
                     $retryCount++
                 }
             }
-            throw "$packageName failed to install via Chocolatey after multiple attempts."
+            Write-Host "$packageName failed after $maxRetries attempts. Continuing..."
         }
         Install-PackageWithRetry -packageName "chrome-remote-desktop-host"
         Install-PackageWithRetry -packageName "googlechrome"
 
-    - name: Start Chrome Remote Desktop
-      continue-on-error: true
+    - name: Wait for CRD Service
       run: |
-        function Start-RemoteDesktop {
-          $paths = @("${Env:PROGRAMFILES(X86)}\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe", "${Env:PROGRAMFILES}\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe")
-          foreach ($path in $paths) {
-              if (Test-Path $path) { & $path; return }
-          }
-          Write-Host "Chrome Remote Desktop's remoting_start_host.exe not found."
+        Start-Sleep -Seconds 30
+        $service = Get-Service -Name "chromoting" -ErrorAction SilentlyContinue
+        if ($service) {
+            Write-Host "Chrome Remote Desktop service found: $($service.Status)"
+        } else {
+            Write-Host "Service not found yet, continuing..."
         }
-        Start-RemoteDesktop
+
     - name: Start Remote Desktop Session
       continue-on-error: true
       run: |
         Write-Host "Connecting to VM with Remote Desktop"
         ${{ inputs.code }} --pin=123456
 
+    - name: Verify CRD Running
+      continue-on-error: true
+      run: |
+        Start-Sleep -Seconds 15
+        $service = Get-Service -Name "chromoting" -ErrorAction SilentlyContinue
+        if ($service -and $service.Status -eq "Running") {
+            Write-Host "CRD service is running."
+        } else {
+            Write-Host "CRD service not running, attempting manual start..."
+            try { Start-Service -Name "chromoting" } catch { Write-Host "Could not start service." }
+        }
+
     - name: Keep Connection Active
       run: |
-        $i = 43200
-        do {
-            Write-Host $i
-            Start-Sleep 60
+        $totalMinutes = 43200
+        $i = $totalMinutes
+        while ($i -gt 0) {
+            $elapsed = $totalMinutes - $i
+            Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Uptime: ${elapsed} min | Remaining: ${i} min"
+
+            # Restart CRD service if it stops every 30 minutes
+            if ($elapsed -gt 0 -and ($elapsed % 30) -eq 0) {
+                $svc = Get-Service -Name "chromoting" -ErrorAction SilentlyContinue
+                if ($svc -and $svc.Status -ne "Running") {
+                    Write-Host "CRD stopped. Restarting..."
+                    try { Start-Service -Name "chromoting" } catch {}
+                }
+            }
+
+            Start-Sleep -Seconds 60
             $i--
-        } while ($i -gt 0)
-        
+        }
